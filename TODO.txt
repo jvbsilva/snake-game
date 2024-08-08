@@ -1,0 +1,5 @@
+- criar o grid de cordenadas descontando o espaço para o painel lateral
+- criar a classe Snake
+- criar a classe pySnake
+- criar a classe userSnake  
+- criar um set com o os pontos disponíveis
