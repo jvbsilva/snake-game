@@ -92,6 +92,8 @@ def main():
         # Check for food eaten
         if userSnake.head in food_list:
             userSnake.eat(userSnake.head.copy())
+            food_list.remove(userSnake.head)
+            food_list.append(use_available_point(available_points))
 
         # Clean the screen
         screen.fill(WHITE)
