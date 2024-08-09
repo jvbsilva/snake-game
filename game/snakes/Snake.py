@@ -9,26 +9,23 @@ class Snake:
     def turn(self, direction: str):
         self.cur_direction = direction
 
-    def move_right(self):
-        self.head[0] += self.square_size
-
-    def move_left(self):
-        self.head[0] -= self.square_size
-
-    def move_up(self):
-        self.head[1] -= self.square_size
-
-    def move_down(self):
-        self.head[1] += self.square_size
-
     def move(self):
+        new_head = self.head.copy()
+
         if self.cur_direction == "RIGHT":
-            self.move_right()
+            new_head[0] += self.square_size
         elif self.cur_direction == "LEFT":
-            self.move_left()
+            new_head[0] -= self.square_size
         elif self.cur_direction == "UP":
-            self.move_up()
+            new_head[1] -= self.square_size
         elif self.cur_direction == "DOWN":
-            self.move_down()
+            new_head[1] += self.square_size
         else:
             pass
+
+        self.head = new_head
+        self.body.insert(0, new_head)
+        self.body.pop()
+
+    def eat(self, food):
+        self.body.append(food)

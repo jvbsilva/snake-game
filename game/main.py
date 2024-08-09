@@ -4,15 +4,15 @@ from pygame.surface import Surface
 import sys
 from snakes.Snake import Snake
 
-FPS = 60
-N_FOODS = 5
+FPS = 15
+N_FOODS = 10
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
 
 GRID_WIDTH = 600
 GRID_HEIGHT = 600
-GRID_SQUARE = 10
+GRID_SQUARE = 20
 
 X_GRID = range(0, GRID_WIDTH, GRID_SQUARE)
 Y_GRID = range(0, GRID_HEIGHT, GRID_SQUARE)
@@ -88,6 +88,10 @@ def main():
 
         # Move user snake
         userSnake.move()
+
+        # Check for food eaten
+        if userSnake.head in food_list:
+            userSnake.eat(userSnake.head.copy())
 
         # Clean the screen
         screen.fill(WHITE)
