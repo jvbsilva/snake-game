@@ -71,6 +71,9 @@ def main():
             grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
         )
 
+    # Create grid rect for colision check
+    grid_rect = pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT)
+
     # Create clock to control fps
     clock = pygame.time.Clock()
 
@@ -117,6 +120,16 @@ def main():
 
         # Draw user snake
         draw_snake(screen, userSnake, RED)
+
+        # Check for grid border colision
+        if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
+            pygame.quit()
+            sys.exit()
+
+        # Check for self colision
+        if userSnake.self_colision:
+            pygame.quit()
+            sys.exit()
 
         # Update the display
         pygame.display.flip()

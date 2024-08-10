@@ -5,6 +5,7 @@ class Snake:
         self.body = []
         self.body.append(head)
         self.cur_direction = ""
+        self.self_colision = False
 
     def turn(self, direction: str):
         if self.cur_direction == "RIGHT" and direction == "LEFT":
@@ -31,6 +32,10 @@ class Snake:
             new_head[1] += self.square_size
         else:
             pass
+
+        if len(self.body) > 1:
+            if new_head in self.body:
+                self.self_colision = True
 
         self.head = new_head
         self.body.insert(0, new_head)
