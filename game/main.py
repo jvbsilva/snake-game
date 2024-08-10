@@ -63,6 +63,14 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCRERN_HEIGHT))
     pygame.display.set_caption("PySnake")
 
+    # Create grid surface
+    grid_surface = pygame.Surface((GRID_WIDTH, GRID_HEIGHT))
+    grid_surface.fill(LIGHT_GREY)
+    for x, y in GRID_WHITE:
+        pygame.draw.rect(
+            grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
+        )
+
     # Create clock to control fps
     clock = pygame.time.Clock()
 
@@ -98,12 +106,8 @@ def main():
         # Clean the screen
         screen.fill(WHITE)
 
-        # Draw the grid
-        pygame.draw.rect(screen, LIGHT_GREY, pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT))
-        for x, y in GRID_WHITE:
-            pygame.draw.rect(
-                screen, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
-            )
+        # Blit the grid
+        screen.blit(grid_surface, (0, 0))
 
         # Draw foods
         for food in food_list:

@@ -7,7 +7,16 @@ class Snake:
         self.cur_direction = ""
 
     def turn(self, direction: str):
-        self.cur_direction = direction
+        if self.cur_direction == "RIGHT" and direction == "LEFT":
+            return
+        elif self.cur_direction == "LEFT" and direction == "RIGHT":
+            return
+        elif self.cur_direction == "UP" and direction == "DOWN":
+            return
+        elif self.cur_direction == "DOWN" and direction == "UP":
+            return
+        else:
+            self.cur_direction = direction
 
     def move(self):
         new_head = self.head.copy()
