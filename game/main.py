@@ -2,10 +2,11 @@ import random
 import pygame
 from pygame.surface import Surface
 import sys
-from snakes.Snake import Snake
+from snakes.Snake import Snake, PySnake
 
 FPS = 15
 N_FOODS = 10
+N_PYSNAKES = 5
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -55,6 +56,13 @@ def main():
 
     # Create user snake
     userSnake = Snake(use_available_point(available_points), GRID_SQUARE)
+
+    # Create PySnakes
+    pySnakes_list: list[PySnake] = []
+    for _ in range(N_PYSNAKES):
+        pySnakes_list.append(
+            PySnake(use_available_point(available_points), GRID_SQUARE)
+        )
 
     # Initialize PyGame
     pygame.init()
@@ -120,6 +128,10 @@ def main():
 
         # Draw user snake
         draw_snake(screen, userSnake, RED)
+
+        # Draw pySnakes
+        for snake in pySnakes_list:
+            draw_snake(screen, snake, snake.color)
 
         # Check for grid border colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):

@@ -43,3 +43,9 @@ class Snake:
 
     def eat(self, food):
         self.body.append(food)
+
+
+class PySnake(Snake):
+    def __init__(self, head: list, square_size: int):
+        super().__init__(head, square_size)
+        self.color = (55, 255, 55)
