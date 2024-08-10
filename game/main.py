@@ -143,6 +143,12 @@ def main():
             pygame.quit()
             sys.exit()
 
+        # Check for pySnake colision
+        for snake in pySnakes_list:
+            if userSnake.head in snake.body:
+                pygame.quit()
+                sys.exit()
+
         # Update the display
         pygame.display.flip()
 
