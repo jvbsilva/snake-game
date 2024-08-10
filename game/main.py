@@ -64,6 +64,10 @@ def main():
             PySnake(use_available_point(available_points), GRID_SQUARE)
         )
 
+    # Chose target food for PySnakes
+    for snake in pySnakes_list:
+        snake.chose_target_food(food_list)
+
     # Initialize PyGame
     pygame.init()
 
@@ -105,14 +109,31 @@ def main():
                 if event.key == pygame.K_DOWN:
                     userSnake.turn("DOWN")
 
-        # Move user snake
+        # Move snakes
         userSnake.move()
 
+        for snake in pySnakes_list:
+            snake.chase_food()
+            snake.move()
+
         # Check for food eaten
+        was_food_eaten = False
         if userSnake.head in food_list:
             userSnake.eat(userSnake.head.copy())
             food_list.remove(userSnake.head)
             food_list.append(use_available_point(available_points))
+            was_food_eaten = True
+
+        for snake in pySnakes_list:
+            if snake.head in food_list:
+                snake.eat(snake.head.copy())
+                food_list.remove(snake.head)
+                food_list.append(use_available_point(available_points))
+                was_food_eaten = True
+
+        if was_food_eaten:
+            for snake in pySnakes_list:
+                snake.chose_target_food(food_list)
 
         # Clean the screen
         screen.fill(WHITE)
@@ -144,10 +165,10 @@ def main():
             sys.exit()
 
         # Check for pySnake colision
-        for snake in pySnakes_list:
-            if userSnake.head in snake.body:
-                pygame.quit()
-                sys.exit()
+        # for snake in pySnakes_list:
+        #     if userSnake.head in snake.body:
+        #         pygame.quit()
+        #         sys.exit()
 
         # Update the display
         pygame.display.flip()
