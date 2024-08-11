@@ -4,9 +4,9 @@ from pygame.surface import Surface
 import sys
 from snakes.Snake import Snake, PySnake
 
-FPS = 15
+FPS = 5
 N_FOODS = 10
-N_PYSNAKES = 5
+N_PYSNAKES = 2
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -26,16 +26,43 @@ LIGHT_GREY = (211, 211, 211)
 WHITE_SMOKE = (245, 245, 245)
 WHITE = (255, 255, 255)
 RED = (255, 55, 55)
+ORANGE = (255, 165, 0)
 BLUE = (55, 55, 255)
+GREEN = (0, 225, 0)
+DARK_GREEN = (0, 125, 0)
 
 
-def draw_snake(screen: Surface, snake: Snake, color: tuple):
+def create_rect_with_border(width, height, inner_color, border_color, border_size):
+    # Create a surface with the desired dimensions including borders
+    surface = pygame.Surface((width + 2 * border_size, height + 2 * border_size))
+
+    # Fill the entire surface with the border color
+    surface.fill(border_color)
+
+    # Draw the inner rectangle (leaving space for the border)
+    inner_rect = pygame.Rect(border_size, border_size, width, height)
+    pygame.draw.rect(surface, inner_color, inner_rect)
+
+    return surface
+
+
+user_snake_body_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, RED, BLACK, 2)
+user_snake_head_rect = create_rect_with_border(
+    GRID_SQUARE, GRID_SQUARE, ORANGE, BLACK, 2
+)
+
+pySnake_body_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, GREEN, BLACK, 2)
+pySnake_head_rect = create_rect_with_border(
+    GRID_SQUARE, GRID_SQUARE, DARK_GREEN, BLACK, 2
+)
+
+food_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, BLUE, BLACK, 2)
+
+
+def draw_snake(screen: Surface, snake: Snake, body_surf: Surface, head_surf: Surface):
     for piece in snake.body:
-        pygame.draw.rect(
-            screen,
-            color,
-            pygame.Rect(piece[0], piece[1], snake.square_size, snake.square_size),
-        )
+        screen.blit(body_surf, (piece[0], piece[1]))
+    screen.blit(head_surf, (snake.head[0], snake.head[1]))
 
 
 def use_available_point(available_points: list):
@@ -143,16 +170,14 @@ def main():
 
         # Draw foods
         for food in food_list:
-            pygame.draw.rect(
-                screen, BLUE, pygame.Rect(food[0], food[1], GRID_SQUARE, GRID_SQUARE)
-            )
+            screen.blit(food_rect, (food[0], food[1]))
 
         # Draw user snake
-        draw_snake(screen, userSnake, RED)
+        draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
 
         # Draw pySnakes
         for snake in pySnakes_list:
-            draw_snake(screen, snake, snake.color)
+            draw_snake(screen, snake, pySnake_body_rect, pySnake_head_rect)
 
         # Check for grid border colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
