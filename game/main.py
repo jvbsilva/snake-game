@@ -2,9 +2,9 @@ import random
 import pygame
 from pygame.surface import Surface
 import sys
-from snakes.Snake import Snake, PySnake
+from snakes.Snake import Snake, UserSnake, PySnake
 
-FPS = 5
+FPS = 15
 N_FOODS = 10
 N_PYSNAKES = 2
 
@@ -34,13 +34,15 @@ DARK_GREEN = (0, 125, 0)
 
 def create_rect_with_border(width, height, inner_color, border_color, border_size):
     # Create a surface with the desired dimensions including borders
-    surface = pygame.Surface((width + 2 * border_size, height + 2 * border_size))
+    surface = pygame.Surface((width, height))
 
     # Fill the entire surface with the border color
     surface.fill(border_color)
 
     # Draw the inner rectangle (leaving space for the border)
-    inner_rect = pygame.Rect(border_size, border_size, width, height)
+    inner_rect = pygame.Rect(
+        border_size, border_size, width - 2 * border_size, height - 2 * border_size
+    )
     pygame.draw.rect(surface, inner_color, inner_rect)
 
     return surface
@@ -82,7 +84,7 @@ def main():
         food_list.append(use_available_point(available_points))
 
     # Create user snake
-    userSnake = Snake(use_available_point(available_points), GRID_SQUARE)
+    userSnake = UserSnake(use_available_point(available_points), GRID_SQUARE)
 
     # Create PySnakes
     pySnakes_list: list[PySnake] = []

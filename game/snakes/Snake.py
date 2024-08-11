@@ -10,18 +10,6 @@ class Snake:
         self.cur_direction = ""
         self.self_colision = False
 
-    def turn(self, direction: str):
-        if self.cur_direction == "RIGHT" and direction == "LEFT":
-            return
-        elif self.cur_direction == "LEFT" and direction == "RIGHT":
-            return
-        elif self.cur_direction == "UP" and direction == "DOWN":
-            return
-        elif self.cur_direction == "DOWN" and direction == "UP":
-            return
-        else:
-            self.cur_direction = direction
-
     def move(self):
         new_head = self.head.copy()
 
@@ -48,10 +36,26 @@ class Snake:
         self.body.append(food)
 
 
+class UserSnake(Snake):
+    def __init__(self, head: list, square_size: int):
+        super().__init__(head, square_size)
+
+    def turn(self, direction: str):
+        if self.cur_direction == "RIGHT" and direction == "LEFT":
+            return
+        elif self.cur_direction == "LEFT" and direction == "RIGHT":
+            return
+        elif self.cur_direction == "UP" and direction == "DOWN":
+            return
+        elif self.cur_direction == "DOWN" and direction == "UP":
+            return
+        else:
+            self.cur_direction = direction
+
+
 class PySnake(Snake):
     def __init__(self, head: list, square_size: int):
         super().__init__(head, square_size)
-        self.color = (55, 255, 55)
         self.target_food = [0, 0]
 
     def chose_target_food(self, food_list):
@@ -64,7 +68,7 @@ class PySnake(Snake):
                     best_dist = dist
 
     def chase_food(self):
-        possible_moves = ["RIGHT", "LEFT", "UP", "DOWN"]
+        possible_moves = ["DOWN", "RIGHT", "UP", "LEFT"]
         if self.head[0] == self.target_food[0]:
             possible_moves.remove("RIGHT")
             possible_moves.remove("LEFT")
