@@ -55,12 +55,13 @@ class PySnake(Snake):
         self.target_food = [0, 0]
 
     def chose_target_food(self, food_list):
-        best_dist = float("inf")
-        for food in food_list:
-            dist = abs(self.head[0] - food[0]) + abs(self.head[1] - food[1])
-            if dist < best_dist:
-                self.target_food = food
-                best_dist = dist
+        if self.target_food not in food_list:
+            best_dist = float("inf")
+            for food in food_list:
+                dist = abs(self.head[0] - food[0]) + abs(self.head[1] - food[1])
+                if dist < best_dist:
+                    self.target_food = food
+                    best_dist = dist
 
     def chase_food(self):
         possible_moves = ["RIGHT", "LEFT", "UP", "DOWN"]

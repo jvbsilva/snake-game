@@ -6,7 +6,7 @@ from snakes.Snake import Snake, PySnake
 
 FPS = 15
 N_FOODS = 10
-N_PYSNAKES = 2
+N_PYSNAKES = 5
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
