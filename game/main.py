@@ -164,6 +164,10 @@ def main():
             pygame.quit()
             sys.exit()
 
+        for snake in pySnakes_list:
+            if snake.self_colision:
+                pySnakes_list.remove(snake)
+
         # Check for pySnake colision
         # for snake in pySnakes_list:
         #     if userSnake.head in snake.body:
