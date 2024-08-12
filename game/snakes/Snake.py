@@ -67,24 +67,30 @@ class PySnake(Snake):
                     self.target_food = food
                     best_dist = dist
 
+    def look(self, direction: str):
+        if direction == "RIGHT":
+            return [self.head[0] + self.square_size, self.head[1]]
+        elif direction == "LEFT":
+            return [self.head[0] - self.square_size, self.head[1]]
+        elif direction == "UP":
+            return [self.head[0], self.head[1] - self.square_size]
+        elif direction == "DOWN":
+            return [self.head[0], self.head[1] + self.square_size]
+        else:
+            return None
+
     def chase_food(self):
-        possible_moves = ["DOWN", "RIGHT", "UP", "LEFT"]
-        if self.head[0] == self.target_food[0]:
-            possible_moves.remove("RIGHT")
-            possible_moves.remove("LEFT")
-        elif self.head[0] > self.target_food[0]:
-            possible_moves.remove("RIGHT")
-        elif self.head[0] < self.target_food[0]:
-            possible_moves.remove("LEFT")
-
-        if self.head[1] == self.target_food[1]:
-            possible_moves.remove("DOWN")
-            possible_moves.remove("UP")
-        elif self.head[1] > self.target_food[1]:
-            possible_moves.remove("DOWN")
-        elif self.head[1] < self.target_food[1]:
-            possible_moves.remove("UP")
-
-        if possible_moves:
-            if self.cur_direction not in possible_moves:
-                self.cur_direction = random.choice(possible_moves)
+        possible_moves = ["UP", "DOWN", "RIGHT", "LEFT"]
+        best_move = ""
+        best_dist = float("inf")
+        for move in possible_moves:
+            next_point = self.look(move)
+            if next_point not in self.body:
+                dist = abs(next_point[0] - self.target_food[0]) + abs(
+                    next_point[1] - self.target_food[1]
+                )
+                if dist < best_dist:
+                    best_move = move
+                    best_dist = dist
+        if best_move:
+            self.cur_direction = best_move

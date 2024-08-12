@@ -1,5 +1,1 @@
-- implementar verificação de área do grid
-- implementar verificação de auto colisão
-- criar a classe pySnake
-- criar a classe userSnake
-
+- Atualizar available_points com dados das snakes

@@ -4,9 +4,9 @@ from pygame.surface import Surface
 import sys
 from snakes.Snake import Snake, UserSnake, PySnake
 
-FPS = 15
-N_FOODS = 10
-N_PYSNAKES = 2
+FPS = 5
+N_FOODS = 25
+N_PYSNAKES = 1
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -175,11 +175,14 @@ def main():
             screen.blit(food_rect, (food[0], food[1]))
 
         # Draw user snake
-        draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
+        # draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
 
         # Draw pySnakes
         for snake in pySnakes_list:
             draw_snake(screen, snake, pySnake_body_rect, pySnake_head_rect)
+            screen.blit(
+                user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
+            )
 
         # Check for grid border colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
@@ -194,7 +197,8 @@ def main():
         for snake in pySnakes_list:
             if snake.self_colision:
                 pySnakes_list.remove(snake)
-
+                pygame.quit()
+                sys.exit()
         # Check for pySnake colision
         # for snake in pySnakes_list:
         #     if userSnake.head in snake.body:
