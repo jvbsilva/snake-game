@@ -43,6 +43,7 @@ class Snake:
 class UserSnake(Snake):
     def __init__(self, head: list, square_size: int):
         super().__init__(head, square_size)
+        self.points = 0
 
     def turn(self, direction: str):
         if self.cur_direction == "RIGHT" and direction == "LEFT":

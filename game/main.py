@@ -4,7 +4,7 @@ from pygame.surface import Surface
 import sys
 from snakes.Snake import Snake, UserSnake, PySnake
 
-FPS = 15
+FPS = 10
 N_FOODS = 5
 N_PYSNAKES = 5
 
@@ -139,9 +139,22 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCRERN_HEIGHT))
     pygame.display.set_caption("PySnake")
 
+    # Track initial speed
+    speed = FPS
+    last_rendered_speed = FPS
+
+    # Create fonts and default messages
+    pygame.font.init()
+    my_font = pygame.font.SysFont("Comic Sans MS", 14)
+
+    press_any_key_msg = my_font.render("Press any key to start", False, BLACK, None)
+    speed_msg = my_font.render(f"Seep: {last_rendered_speed}", False, BLACK, None)
+    points_msg = my_font.render(f"Poitns: {userSnake.points}", False, BLACK, None)
+
     # Create clock to control fps
     clock = pygame.time.Clock()
 
+    running = False
     # Main loop
     while True:
         for event in pygame.event.get():
@@ -149,52 +162,68 @@ def main():
                 close()
 
             if event.type == pygame.KEYDOWN:
+                running = True
                 if event.key == pygame.K_LEFT:
                     userSnake.turn("LEFT")
-
-                if event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_RIGHT:
                     userSnake.turn("RIGHT")
-
-                if event.key == pygame.K_UP:
+                elif event.key == pygame.K_UP:
                     userSnake.turn("UP")
-
-                if event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_DOWN:
                     userSnake.turn("DOWN")
 
-        # Move snakes
-        userSnake.move()
+        if running:
+            # Move snakes
+            userSnake.move()
 
-        for snake in pySnakes_list:
-            snake.chase_food(available_points)
-            snake.move()
-
-        # Check for food eaten
-        was_food_eaten = False
-        if userSnake.head in food_list:
-            userSnake.eat(userSnake.head.copy())
-            food_list.remove(userSnake.head)
-            was_food_eaten = True
-
-        for snake in pySnakes_list:
-            if snake.head in food_list:
-                snake.eat(snake.head.copy())
-                food_list.remove(snake.head)
-                was_food_eaten = True
-
-        if was_food_eaten:
-            available_points = update_available_points(
-                userSnake, pySnakes_list, food_list
-            )
-            while len(food_list) < N_FOODS:
-                food_list.append(use_available_point(available_points))
-
-            available_food_list = food_list.copy()
             for snake in pySnakes_list:
-                snake.chose_target_food(available_food_list)
-                available_food_list.remove(snake.target_food)
+                snake.chase_food(available_points)
+                snake.move()
+
+            # Check for food eaten
+            was_food_eaten = False
+            if userSnake.head in food_list:
+                userSnake.eat(userSnake.head.copy())
+                food_list.remove(userSnake.head)
+                was_food_eaten = True
+                # Update points
+                userSnake.points += speed
+                points_msg = my_font.render(
+                    f"Poitns: {userSnake.points}", False, BLACK, None
+                )
+
+            for snake in pySnakes_list:
+                if snake.head in food_list:
+                    snake.eat(snake.head.copy())
+                    food_list.remove(snake.head)
+                    was_food_eaten = True
+
+            if was_food_eaten:
+                available_points = update_available_points(
+                    userSnake, pySnakes_list, food_list
+                )
+                while len(food_list) < N_FOODS:
+                    food_list.append(use_available_point(available_points))
+
+                available_food_list = food_list.copy()
+                for snake in pySnakes_list:
+                    snake.chose_target_food(available_food_list)
+                    available_food_list.remove(snake.target_food)
 
         # Clean the screen
         screen.fill(WHITE)
+
+        if running:
+            if last_rendered_speed != speed:
+                last_rendered_speed = speed
+                speed_msg = my_font.render(
+                    f"Seep: {last_rendered_speed}", False, BLACK, None
+                )
+            screen.blit(speed_msg, (GRID_WIDTH, 10))
+            screen.blit(points_msg, (GRID_WIDTH, 30))
+
+        else:
+            screen.blit(press_any_key_msg, (GRID_WIDTH, 10))
 
         # Debug avialable_points
         # for point in available_points:
@@ -213,15 +242,12 @@ def main():
         # Draw pySnakes
         for snake in pySnakes_list:
             draw_snake(screen, snake, pySnake_body_rect, pySnake_head_rect)
-            screen.blit(
-                user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
-            )
 
         # Debug target_food
-        for snake in pySnakes_list:
-            screen.blit(
-                user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
-            )
+        # for snake in pySnakes_list:
+        #     screen.blit(
+        #         user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
+        #     )
 
         # Check for colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
@@ -230,6 +256,8 @@ def main():
             print_and_close(screen)
 
         for snake in pySnakes_list:
+            if userSnake.head in snake.body:
+                print_and_close(screen)
             if (
                 not grid_rect.collidepoint(snake.head[0], snake.head[1])
                 or snake.self_colision
@@ -242,8 +270,9 @@ def main():
         # Get ready for next iteration
         pySnakes_list.sort(key=lambda x: len(x.body), reverse=False)
         available_points = update_available_points(userSnake, pySnakes_list, food_list)
+        speed = FPS + (FPS // N_PYSNAKES) * (N_PYSNAKES - len(pySnakes_list))
         # Use clock to control FPS
-        clock.tick(FPS)
+        clock.tick(speed)
 
 
 if __name__ == "__main__":
