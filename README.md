@@ -1,5 +1,9 @@
 joguinho de snake para treinar POO
 
+![Início do jogo](inicio.png)
+
+![Durante o jogo](jogo_em_andamento.png)
+
 Features implementadas até agora:
 - Jogo inicia com 5 pySnakes e 5 comidas.
 - O valor dos pontos recebidos quando o usuário come uma comida é igual ao valor da velocidade naquele instante.
