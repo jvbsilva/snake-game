@@ -5,8 +5,8 @@ import sys
 from snakes.Snake import Snake, UserSnake, PySnake
 
 FPS = 15
-N_FOODS = 20
-N_PYSNAKES = 10
+N_FOODS = 5
+N_PYSNAKES = 3
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -30,21 +30,30 @@ ORANGE = (255, 165, 0)
 BLUE = (55, 55, 255)
 GREEN = (0, 225, 0)
 DARK_GREEN = (0, 125, 0)
+PURPLE = (125, 0, 125)
+
+# Create grid surface
+grid_surface = pygame.Surface((GRID_WIDTH, GRID_HEIGHT))
+grid_surface.fill(LIGHT_GREY)
+for x, y in GRID_WHITE:
+    pygame.draw.rect(
+        grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
+    )
+
+# Create grid rect for colision check
+grid_rect = pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT)
 
 
 def create_rect_with_border(width, height, inner_color, border_color, border_size):
     # Create a surface with the desired dimensions including borders
     surface = pygame.Surface((width, height))
-
     # Fill the entire surface with the border color
     surface.fill(border_color)
-
     # Draw the inner rectangle (leaving space for the border)
     inner_rect = pygame.Rect(
         border_size, border_size, width - 2 * border_size, height - 2 * border_size
     )
     pygame.draw.rect(surface, inner_color, inner_rect)
-
     return surface
 
 
@@ -60,6 +69,8 @@ pySnake_head_rect = create_rect_with_border(
 
 food_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, BLUE, BLACK, 2)
 
+debug_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, PURPLE, BLACK, 0)
+
 
 def draw_snake(screen: Surface, snake: Snake, body_surf: Surface, head_surf: Surface):
     for piece in snake.body:
@@ -71,6 +82,28 @@ def use_available_point(available_points: list):
     point = random.choice(available_points)
     available_points.remove(point)
     return list(point)
+
+
+def update_available_points(
+    userSnake: UserSnake, pySnakes_list: list[PySnake], food_list: list
+):
+    occupied_points = []
+    occupied_points.extend(userSnake.body)
+    for snake in pySnakes_list:
+        occupied_points.extend(snake.body)
+    occupied_points.extend(food_list)
+    occupied_points = [(point[0], point[1]) for point in occupied_points]
+    return [point for point in GRID.copy() if point not in occupied_points]
+
+
+def close():
+    pygame.quit()
+    sys.exit()
+
+
+def print_and_close(main_screen: Surface):
+    pygame.image.save(main_screen, "last_move.jpg")
+    close()
 
 
 def main():
@@ -104,17 +137,6 @@ def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCRERN_HEIGHT))
     pygame.display.set_caption("PySnake")
 
-    # Create grid surface
-    grid_surface = pygame.Surface((GRID_WIDTH, GRID_HEIGHT))
-    grid_surface.fill(LIGHT_GREY)
-    for x, y in GRID_WHITE:
-        pygame.draw.rect(
-            grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
-        )
-
-    # Create grid rect for colision check
-    grid_rect = pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT)
-
     # Create clock to control fps
     clock = pygame.time.Clock()
 
@@ -122,8 +144,7 @@ def main():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                close()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -142,7 +163,7 @@ def main():
         userSnake.move()
 
         for snake in pySnakes_list:
-            snake.chase_food()
+            snake.chase_food(available_points)
             snake.move()
 
         # Check for food eaten
@@ -150,22 +171,29 @@ def main():
         if userSnake.head in food_list:
             userSnake.eat(userSnake.head.copy())
             food_list.remove(userSnake.head)
-            food_list.append(use_available_point(available_points))
             was_food_eaten = True
 
         for snake in pySnakes_list:
             if snake.head in food_list:
                 snake.eat(snake.head.copy())
                 food_list.remove(snake.head)
-                food_list.append(use_available_point(available_points))
                 was_food_eaten = True
 
         if was_food_eaten:
+            available_points = update_available_points(
+                userSnake, pySnakes_list, food_list
+            )
+            while len(food_list) < N_FOODS:
+                food_list.append(use_available_point(available_points))
             for snake in pySnakes_list:
                 snake.chose_target_food(food_list)
 
         # Clean the screen
         screen.fill(WHITE)
+
+        # Debug avialable_points
+        # for point in available_points:
+        #     screen.blit(debug_rect, point)
 
         # Blit the grid
         screen.blit(grid_surface, (0, 0))
@@ -184,30 +212,31 @@ def main():
                 user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
             )
 
-        # Check for grid border colision
-        if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
-            pygame.quit()
-            sys.exit()
+        # Debug target_food
+        # for snake in pySnakes_list:
+        #     screen.blit(
+        #         user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
+        #     )
 
-        # Check for self colision
-        if userSnake.self_colision:
-            pygame.quit()
-            sys.exit()
+        # Check for colision
+        if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
+            close()
+        elif userSnake.self_colision:
+            print_and_close(screen)
 
         for snake in pySnakes_list:
-            if snake.self_colision:
+            if (
+                not grid_rect.collidepoint(snake.head[0], snake.head[1])
+                or snake.self_colision
+            ):
                 pySnakes_list.remove(snake)
-
-        pySnakes_list.sort(key=lambda x: len(x.body), reverse=False)
-        # Check for pySnake colision
-        # for snake in pySnakes_list:
-        #     if userSnake.head in snake.body:
-        #         pygame.quit()
-        #         sys.exit()
 
         # Update the display
         pygame.display.flip()
 
+        # Get ready for next iteration
+        pySnakes_list.sort(key=lambda x: len(x.body), reverse=False)
+        available_points = update_available_points(userSnake, pySnakes_list, food_list)
         # Use clock to control FPS
         clock.tick(FPS)
 

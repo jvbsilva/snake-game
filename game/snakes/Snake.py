@@ -83,14 +83,20 @@ class PySnake(Snake):
         else:
             return None
 
-    def chase_food(self):
+    def chase_food(self, available_points):
         possible_moves = ["DOWN", "RIGHT", "UP", "LEFT"]
         best_move = ""
         best_dist = float("inf")
         for move in possible_moves:
             next_point = self.look(move)
-            if next_point not in self.body:
-                dist = calc_dist(next_point, self.target_food)
+            if (
+                next_point[0] == self.target_food[0]
+                and next_point[1] == self.target_food[1]
+            ):
+                best_move = move
+                break
+            elif (next_point[0], next_point[1]) in available_points:
+                dist = calc_dist(self.look(move), self.target_food)
                 if dist < best_dist:
                     best_move = move
                     best_dist = dist
