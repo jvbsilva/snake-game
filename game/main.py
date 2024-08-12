@@ -6,7 +6,7 @@ from snakes.Snake import Snake, UserSnake, PySnake
 
 FPS = 15
 N_FOODS = 5
-N_PYSNAKES = 3
+N_PYSNAKES = 5
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -115,6 +115,7 @@ def main():
     food_list = []
     for _ in range(N_FOODS):
         food_list.append(use_available_point(available_points))
+    available_food_list = food_list.copy()
 
     # Create user snake
     userSnake = UserSnake(use_available_point(available_points), GRID_SQUARE)
@@ -128,7 +129,8 @@ def main():
 
     # Chose target food for PySnakes
     for snake in pySnakes_list:
-        snake.chose_target_food(food_list)
+        snake.chose_target_food(available_food_list)
+        available_food_list.remove(snake.target_food)
 
     # Initialize PyGame
     pygame.init()
@@ -185,8 +187,11 @@ def main():
             )
             while len(food_list) < N_FOODS:
                 food_list.append(use_available_point(available_points))
+
+            available_food_list = food_list.copy()
             for snake in pySnakes_list:
-                snake.chose_target_food(food_list)
+                snake.chose_target_food(available_food_list)
+                available_food_list.remove(snake.target_food)
 
         # Clean the screen
         screen.fill(WHITE)
@@ -213,10 +218,10 @@ def main():
             )
 
         # Debug target_food
-        # for snake in pySnakes_list:
-        #     screen.blit(
-        #         user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
-        #     )
+        for snake in pySnakes_list:
+            screen.blit(
+                user_snake_body_rect, (snake.target_food[0], snake.target_food[1])
+            )
 
         # Check for colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
