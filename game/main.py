@@ -34,6 +34,27 @@ PURPLE = (125, 0, 125)
 
 
 ## Auxiliary functions ##
+
+
+def get_best_score():
+    best_score = 0
+    try:
+        with open("best_score.txt", "r") as file:
+            line = file.readline().split()
+            best_score = int(line[-1])
+    except Exception as e:
+        pass
+    return best_score
+
+
+def save_best_score(score: int):
+    try:
+        with open("best_score.txt", "w") as file:
+            file.write(f"Best score: {score}")
+    except Exception as e:
+        pass
+
+
 def create_rect_with_border(width, height, inner_color, border_color, border_size):
     # Create a surface with the desired dimensions including borders
     surface = pygame.Surface((width, height))
@@ -71,14 +92,11 @@ def update_available_points(
     return [point for point in GRID.copy() if point not in occupied_points]
 
 
-def close():
+def close(userSnake: UserSnake, best_score):
+    if userSnake.points > best_score:
+        save_best_score(userSnake.points)
     pygame.quit()
     sys.exit()
-
-
-def print_and_close(main_screen: Surface):
-    pygame.image.save(main_screen, "last_move.jpg")
-    close()
 
 
 ## Auxiliary objects ##
@@ -112,6 +130,8 @@ debug_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, PURPLE, BLACK, 0)
 
 ## Main loop ##
 def main():
+
+    best_score = get_best_score()
 
     # Create available_points list
     available_points = GRID.copy()
@@ -155,7 +175,7 @@ def main():
     press_any_key_msg = my_font.render("Press any key to start", False, BLACK, None)
     speed_msg = my_font.render(f"Speed: {last_rendered_speed}", False, BLACK, None)
     points_msg = my_font.render(f"Poitns: {userSnake.points}", False, BLACK, None)
-
+    best_score_msg = my_font.render(f"Best score: {best_score}", False, BLACK, None)
     # Create clock to control fps
     clock = pygame.time.Clock()
 
@@ -164,7 +184,7 @@ def main():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                close()
+                close(userSnake, best_score)
 
             if event.type == pygame.KEYDOWN:
                 running = True
@@ -226,10 +246,9 @@ def main():
                 )
             screen.blit(speed_msg, (GRID_WIDTH, 10))
             screen.blit(points_msg, (GRID_WIDTH, 30))
-
         else:
             screen.blit(press_any_key_msg, (GRID_WIDTH, 10))
-
+        screen.blit(best_score_msg, (GRID_WIDTH, GRID_HEIGHT - 30))
         # Debug avialable_points
         # for point in available_points:
         #     screen.blit(debug_rect, point)
@@ -256,13 +275,13 @@ def main():
 
         # Check for colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
-            print_and_close(screen)
+            close(userSnake, best_score)
         elif userSnake.self_colision:
-            print_and_close(screen)
+            close(userSnake, best_score)
 
         for snake in pySnakes_list:
             if userSnake.head in snake.body:
-                print_and_close(screen)
+                close(userSnake, best_score)
             if (
                 not grid_rect.collidepoint(snake.head[0], snake.head[1])
                 or snake.self_colision
