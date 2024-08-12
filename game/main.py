@@ -4,9 +4,9 @@ from pygame.surface import Surface
 import sys
 from snakes.Snake import Snake, UserSnake, PySnake
 
-FPS = 5
-N_FOODS = 25
-N_PYSNAKES = 1
+FPS = 15
+N_FOODS = 20
+N_PYSNAKES = 10
 
 SCREEN_WIDTH = 800
 SCRERN_HEIGHT = 600
@@ -175,7 +175,7 @@ def main():
             screen.blit(food_rect, (food[0], food[1]))
 
         # Draw user snake
-        # draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
+        draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
 
         # Draw pySnakes
         for snake in pySnakes_list:
@@ -197,8 +197,8 @@ def main():
         for snake in pySnakes_list:
             if snake.self_colision:
                 pySnakes_list.remove(snake)
-                pygame.quit()
-                sys.exit()
+
+        pySnakes_list.sort(key=lambda x: len(x.body), reverse=False)
         # Check for pySnake colision
         # for snake in pySnakes_list:
         #     if userSnake.head in snake.body:

@@ -1,6 +1,10 @@
 import random
 
 
+def calc_dist(point_1, point_2):
+    return (point_1[0] - point_2[0]) ** 2 + (point_1[1] - point_2[1]) ** 2
+
+
 class Snake:
     def __init__(self, head: list, square_size: int):
         self.head = head
@@ -62,7 +66,7 @@ class PySnake(Snake):
         if self.target_food not in food_list:
             best_dist = float("inf")
             for food in food_list:
-                dist = abs(self.head[0] - food[0]) + abs(self.head[1] - food[1])
+                dist = calc_dist(self.head, food)
                 if dist < best_dist:
                     self.target_food = food
                     best_dist = dist
@@ -80,15 +84,13 @@ class PySnake(Snake):
             return None
 
     def chase_food(self):
-        possible_moves = ["UP", "DOWN", "RIGHT", "LEFT"]
+        possible_moves = ["DOWN", "RIGHT", "UP", "LEFT"]
         best_move = ""
         best_dist = float("inf")
         for move in possible_moves:
             next_point = self.look(move)
             if next_point not in self.body:
-                dist = abs(next_point[0] - self.target_food[0]) + abs(
-                    next_point[1] - self.target_food[1]
-                )
+                dist = calc_dist(next_point, self.target_food)
                 if dist < best_dist:
                     best_move = move
                     best_dist = dist
