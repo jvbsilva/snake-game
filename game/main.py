@@ -32,18 +32,8 @@ GREEN = (0, 225, 0)
 DARK_GREEN = (0, 125, 0)
 PURPLE = (125, 0, 125)
 
-# Create grid surface
-grid_surface = pygame.Surface((GRID_WIDTH, GRID_HEIGHT))
-grid_surface.fill(LIGHT_GREY)
-for x, y in GRID_WHITE:
-    pygame.draw.rect(
-        grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
-    )
 
-# Create grid rect for colision check
-grid_rect = pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT)
-
-
+## Auxiliary functions ##
 def create_rect_with_border(width, height, inner_color, border_color, border_size):
     # Create a surface with the desired dimensions including borders
     surface = pygame.Surface((width, height))
@@ -55,21 +45,6 @@ def create_rect_with_border(width, height, inner_color, border_color, border_siz
     )
     pygame.draw.rect(surface, inner_color, inner_rect)
     return surface
-
-
-user_snake_body_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, RED, BLACK, 2)
-user_snake_head_rect = create_rect_with_border(
-    GRID_SQUARE, GRID_SQUARE, ORANGE, BLACK, 2
-)
-
-pySnake_body_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, GREEN, BLACK, 2)
-pySnake_head_rect = create_rect_with_border(
-    GRID_SQUARE, GRID_SQUARE, DARK_GREEN, BLACK, 2
-)
-
-food_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, BLUE, BLACK, 2)
-
-debug_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, PURPLE, BLACK, 0)
 
 
 def draw_snake(screen: Surface, snake: Snake, body_surf: Surface, head_surf: Surface):
@@ -106,6 +81,36 @@ def print_and_close(main_screen: Surface):
     close()
 
 
+## Auxiliary objects ##
+
+# Create grid surface
+grid_surface = pygame.Surface((GRID_WIDTH, GRID_HEIGHT))
+grid_surface.fill(LIGHT_GREY)
+for x, y in GRID_WHITE:
+    pygame.draw.rect(
+        grid_surface, WHITE_SMOKE, pygame.Rect(x, y, GRID_SQUARE, GRID_SQUARE)
+    )
+
+# Create grid rect for colision check
+grid_rect = pygame.Rect(0, 0, GRID_WIDTH, GRID_HEIGHT)
+
+
+user_snake_body_rect = create_rect_with_border(
+    GRID_SQUARE, GRID_SQUARE, ORANGE, BLACK, 2
+)
+user_snake_head_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, RED, BLACK, 2)
+
+pySnake_body_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, GREEN, BLACK, 2)
+pySnake_head_rect = create_rect_with_border(
+    GRID_SQUARE, GRID_SQUARE, DARK_GREEN, BLACK, 2
+)
+
+food_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, BLUE, BLACK, 2)
+
+debug_rect = create_rect_with_border(GRID_SQUARE, GRID_SQUARE, PURPLE, BLACK, 0)
+
+
+## Main loop ##
 def main():
 
     # Create available_points list
@@ -145,10 +150,10 @@ def main():
 
     # Create fonts and default messages
     pygame.font.init()
-    my_font = pygame.font.SysFont("Comic Sans MS", 14)
+    my_font = pygame.font.SysFont("Arial", 18, bold=True)
 
     press_any_key_msg = my_font.render("Press any key to start", False, BLACK, None)
-    speed_msg = my_font.render(f"Seep: {last_rendered_speed}", False, BLACK, None)
+    speed_msg = my_font.render(f"Speed: {last_rendered_speed}", False, BLACK, None)
     points_msg = my_font.render(f"Poitns: {userSnake.points}", False, BLACK, None)
 
     # Create clock to control fps
@@ -217,7 +222,7 @@ def main():
             if last_rendered_speed != speed:
                 last_rendered_speed = speed
                 speed_msg = my_font.render(
-                    f"Seep: {last_rendered_speed}", False, BLACK, None
+                    f"Speed: {last_rendered_speed}", False, BLACK, None
                 )
             screen.blit(speed_msg, (GRID_WIDTH, 10))
             screen.blit(points_msg, (GRID_WIDTH, 30))
@@ -251,7 +256,7 @@ def main():
 
         # Check for colision
         if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
-            close()
+            print_and_close(screen)
         elif userSnake.self_colision:
             print_and_close(screen)
 
