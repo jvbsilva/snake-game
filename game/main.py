@@ -1,8 +1,9 @@
-import random
 import pygame
 from pygame.surface import Surface
+from pygame.font import Font
 import sys
-from snakes.Snake import Snake, UserSnake, PySnake
+from Snakes import Snake, UserSnake
+from Game import Game
 
 FPS = 10
 N_FOODS = 5
@@ -43,7 +44,7 @@ def get_best_score():
             line = file.readline().split()
             best_score = int(line[-1])
     except Exception as e:
-        pass
+        print(e)
     return best_score
 
 
@@ -52,7 +53,7 @@ def save_best_score(score: int):
         with open("best_score.txt", "w") as file:
             file.write(f"Best score: {score}")
     except Exception as e:
-        pass
+        print(e)
 
 
 def create_rect_with_border(width, height, inner_color, border_color, border_size):
@@ -74,22 +75,30 @@ def draw_snake(screen: Surface, snake: Snake, body_surf: Surface, head_surf: Sur
     screen.blit(head_surf, (snake.head[0], snake.head[1]))
 
 
-def use_available_point(available_points: list):
-    point = random.choice(available_points)
-    available_points.remove(point)
-    return list(point)
-
-
-def update_available_points(
-    userSnake: UserSnake, pySnakes_list: list[PySnake], food_list: list
+def draw_messages(
+    is_running: bool,
+    screen: Surface,
+    speed_msg: Surface,
+    points_msg: Surface,
+    press_any_key_msg: Surface,
+    best_score_msg: Surface,
 ):
-    occupied_points = []
-    occupied_points.extend(userSnake.body)
-    for snake in pySnakes_list:
-        occupied_points.extend(snake.body)
-    occupied_points.extend(food_list)
-    occupied_points = [(point[0], point[1]) for point in occupied_points]
-    return [point for point in GRID.copy() if point not in occupied_points]
+    if is_running:
+
+        screen.blit(speed_msg, (GRID_WIDTH, 10))
+        screen.blit(points_msg, (GRID_WIDTH, 30))
+    else:
+        screen.blit(press_any_key_msg, (GRID_WIDTH, 10))
+        screen.blit(best_score_msg, (GRID_WIDTH, GRID_HEIGHT - 30))
+
+
+def update_speed_msg(
+    speed: int, last_rendered_speed: int, font: Font, speed_msg: Surface
+):
+    if last_rendered_speed != speed:
+        last_rendered_speed = speed
+        speed_msg = font.render(f"Speed: {last_rendered_speed}", False, BLACK, None)
+    return speed_msg
 
 
 def close(userSnake: UserSnake, best_score):
@@ -133,29 +142,8 @@ def main():
 
     best_score = get_best_score()
 
-    # Create available_points list
-    available_points = GRID.copy()
-
-    # Create food_list
-    food_list = []
-    for _ in range(N_FOODS):
-        food_list.append(use_available_point(available_points))
-    available_food_list = food_list.copy()
-
-    # Create user snake
-    userSnake = UserSnake(use_available_point(available_points), GRID_SQUARE)
-
-    # Create PySnakes
-    pySnakes_list: list[PySnake] = []
-    for _ in range(N_PYSNAKES):
-        pySnakes_list.append(
-            PySnake(use_available_point(available_points), GRID_SQUARE)
-        )
-
-    # Chose target food for PySnakes
-    for snake in pySnakes_list:
-        snake.chose_target_food(available_food_list)
-        available_food_list.remove(snake.target_food)
+    # Create game
+    game = Game(N_PYSNAKES, N_FOODS, GRID_WIDTH, GRID_HEIGHT, GRID_SQUARE)
 
     # Initialize PyGame
     pygame.init()
@@ -168,104 +156,80 @@ def main():
     speed = FPS
     last_rendered_speed = FPS
 
-    # Create fonts and default messages
+    # Create default font
     pygame.font.init()
     my_font = pygame.font.SysFont("Arial", 18, bold=True)
 
+    # Create messages
     press_any_key_msg = my_font.render("Press any key to start", False, BLACK, None)
     speed_msg = my_font.render(f"Speed: {last_rendered_speed}", False, BLACK, None)
-    points_msg = my_font.render(f"Poitns: {userSnake.points}", False, BLACK, None)
+    points_msg = my_font.render(f"Poitns: {game.user_snake.points}", False, BLACK, None)
     best_score_msg = my_font.render(f"Best score: {best_score}", False, BLACK, None)
+
     # Create clock to control fps
     clock = pygame.time.Clock()
 
-    running = False
     # Main loop
+    running = False
     while True:
+
+        # Read events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                close(userSnake, best_score)
+                close(game.user_snake, best_score)
 
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 running = True
                 if event.key == pygame.K_LEFT:
-                    userSnake.turn("LEFT")
+                    game.user_snake.turn("LEFT")
                 elif event.key == pygame.K_RIGHT:
-                    userSnake.turn("RIGHT")
+                    game.user_snake.turn("RIGHT")
                 elif event.key == pygame.K_UP:
-                    userSnake.turn("UP")
+                    game.user_snake.turn("UP")
                 elif event.key == pygame.K_DOWN:
-                    userSnake.turn("DOWN")
+                    game.user_snake.turn("DOWN")
 
         if running:
-            # Move snakes
-            userSnake.move()
-
-            for snake in pySnakes_list:
-                snake.chase_food(available_points)
-                snake.move()
-
-            # Check for food eaten
-            was_food_eaten = False
-            if userSnake.head in food_list:
-                userSnake.eat(userSnake.head.copy())
-                food_list.remove(userSnake.head)
-                was_food_eaten = True
-                # Update points
-                userSnake.points += speed
+            game.move_snakes()
+            user_ate = game.feed_snakes()
+            if user_ate:
+                # Update points msg
+                game.user_snake.points += speed
                 points_msg = my_font.render(
-                    f"Poitns: {userSnake.points}", False, BLACK, None
+                    f"Poitns: {game.user_snake.points}", False, BLACK, None
                 )
-
-            for snake in pySnakes_list:
-                if snake.head in food_list:
-                    snake.eat(snake.head.copy())
-                    food_list.remove(snake.head)
-                    was_food_eaten = True
-
-            if was_food_eaten:
-                available_points = update_available_points(
-                    userSnake, pySnakes_list, food_list
-                )
-                while len(food_list) < N_FOODS:
-                    food_list.append(use_available_point(available_points))
-
-                available_food_list = food_list.copy()
-                for snake in pySnakes_list:
-                    snake.chose_target_food(available_food_list)
-                    available_food_list.remove(snake.target_food)
 
         # Clean the screen
         screen.fill(WHITE)
 
-        if running:
-            if last_rendered_speed != speed:
-                last_rendered_speed = speed
-                speed_msg = my_font.render(
-                    f"Speed: {last_rendered_speed}", False, BLACK, None
-                )
-            screen.blit(speed_msg, (GRID_WIDTH, 10))
-            screen.blit(points_msg, (GRID_WIDTH, 30))
-        else:
-            screen.blit(press_any_key_msg, (GRID_WIDTH, 10))
-        screen.blit(best_score_msg, (GRID_WIDTH, GRID_HEIGHT - 30))
-        # Debug avialable_points
-        # for point in available_points:
-        #     screen.blit(debug_rect, point)
-
-        # Blit the grid
+        # Draw the grid
         screen.blit(grid_surface, (0, 0))
 
+        # Draw messages
+        speed_msg = update_speed_msg(speed, last_rendered_speed, my_font, speed_msg)
+        draw_messages(
+            running,
+            screen,
+            speed_msg,
+            points_msg,
+            press_any_key_msg,
+            best_score_msg,
+        )
+
         # Draw foods
-        for food in food_list:
+        for food in game.food_list:
             screen.blit(food_rect, (food[0], food[1]))
 
         # Draw user snake
-        draw_snake(screen, userSnake, user_snake_body_rect, user_snake_head_rect)
+        draw_snake(screen, game.user_snake, user_snake_body_rect, user_snake_head_rect)
 
         # Draw pySnakes
-        for snake in pySnakes_list:
+        for snake in game.py_snakes_list:
             draw_snake(screen, snake, pySnake_body_rect, pySnake_head_rect)
+
+        # Debug avialable_points
+        # for point in game.available_points:
+        #     screen.blit(debug_rect, point)
 
         # Debug target_food
         # for snake in pySnakes_list:
@@ -274,27 +238,26 @@ def main():
         #     )
 
         # Check for colision
-        if not grid_rect.collidepoint(userSnake.head[0], userSnake.head[1]):
-            close(userSnake, best_score)
-        elif userSnake.self_colision:
-            close(userSnake, best_score)
+        if game.user_snake.self_colision or not grid_rect.collidepoint(
+            game.user_snake.head[0], game.user_snake.head[1]
+        ):
+            close(game.user_snake, best_score)
 
-        for snake in pySnakes_list:
-            if userSnake.head in snake.body:
-                close(userSnake, best_score)
+        for snake in game.py_snakes_list:
+            if game.user_snake.head in snake.body:
+                close(game.user_snake, best_score)
             if (
                 not grid_rect.collidepoint(snake.head[0], snake.head[1])
                 or snake.self_colision
             ):
-                pySnakes_list.remove(snake)
+                game.py_snakes_list.remove(snake)
 
         # Update the display
         pygame.display.flip()
 
         # Get ready for next iteration
-        pySnakes_list.sort(key=lambda x: len(x.body), reverse=False)
-        available_points = update_available_points(userSnake, pySnakes_list, food_list)
-        speed = FPS + (FPS // N_PYSNAKES) * (N_PYSNAKES - len(pySnakes_list))
+        game.prepare_for_next_iteration()
+        speed = FPS + (FPS // N_PYSNAKES) * (N_PYSNAKES - len(game.py_snakes_list))
         # Use clock to control FPS
         clock.tick(speed)
 

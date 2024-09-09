@@ -25,19 +25,19 @@ class Snake:
             new_head[1] -= self.square_size
         elif self.cur_direction == "DOWN":
             new_head[1] += self.square_size
-        else:
-            pass
 
-        if len(self.body) > 1:
-            if new_head in self.body:
-                self.self_colision = True
+        if len(self.body) > 1 and new_head in self.body:
+            self.self_colision = True
 
         self.head = new_head
         self.body.insert(0, new_head)
         self.body.pop()
 
-    def eat(self, food):
-        self.body.append(food)
+    def can_eat(self, food):
+        return self.head[0] == food[0] and self.head[1] == food[1]
+
+    def eat(self):
+        self.body.append(self.head.copy())
 
 
 class UserSnake(Snake):
